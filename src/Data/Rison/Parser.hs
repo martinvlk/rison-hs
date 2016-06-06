@@ -45,24 +45,23 @@ rison :: Parser Value
 rison = value
 
 value :: Parser Value
-value = object <|> array <|> rstring <|> number <|> boolean <|> nulll
+value = object <|> array <|> rstring <|> number <|> boolean <|> nulll A.<?> "unsupported value type"
 
 object :: Parser Value
 object = do
-  m <- (A.word8 OPEN_BRACKET *> objectValues <* A.word8 CLOSE_BRACKET) <|>
-       (A.word8 OPEN_CURLY *> objectValues <* A.word8 CLOSE_CURLY)
+  m <- (A.word8 OPEN_BRACKET *> objectValues <* A.word8 CLOSE_BRACKET) A.<?> "object"
   return $ Object m
 
 objectValues :: Parser (H.HashMap T.Text Value)
 objectValues = do
   w <- A.peekWord8'
-  if w == CLOSE_CURLY || w == CLOSE_BRACKET
+  if w == CLOSE_BRACKET
     then return H.empty
     else loop H.empty
  where
   loop m0 = do
-    ident <- identifier <* A.word8 COLON
-    v <- value
+    ident <- identifier <* A.word8 COLON A.<?> "object property identifier"
+    v <- value A.<?> "object property value"
     let !m = H.insert ident v m0
     ch <- A.peekWord8'
     if ch == COMMA
@@ -71,27 +70,26 @@ objectValues = do
 
 array :: Parser Value
 array = do
-  v <- (A.word8 OPEN_SQUARE *> arrayValues CLOSE_SQUARE <* A.word8 CLOSE_SQUARE) <|>
-       (A.word8 EXCLAMATION *>
-        A.word8 OPEN_BRACKET *> arrayValues CLOSE_BRACKET <* A.word8 CLOSE_BRACKET)
+  v <- (A.word8 EXCLAMATION *>
+        A.word8 OPEN_BRACKET *> arrayValues <* A.word8 CLOSE_BRACKET)
   return $ Array v
 
-arrayValues :: Word8 -> Parser (V.Vector Value)
-arrayValues endChar = do
+arrayValues :: Parser (V.Vector Value)
+arrayValues = do
   w <- A.peekWord8'
-  if w == endChar
+  if w == CLOSE_BRACKET
     then return V.empty
     else loop []
   where
     loop acc = do
-      v <- value
+      v <- value A.<?> "array value"
       ch <- A.peekWord8'
       if ch == COMMA
         then A.word8 COMMA *> loop (v:acc)
         else return (V.reverse (V.fromList (v:acc)))
 
 boolean :: Parser Value
-boolean = true <|> false
+boolean = true <|> false A.<?> "boolean"
   where
     true = do
       A.word8 EXCLAMATION
@@ -110,15 +108,13 @@ nulll = do
 
 rstring :: Parser Value
 rstring = do
-  let dq = DOUBLE_QUOTE
-      sq = SINGLE_QUOTE
+  let sq = SINGLE_QUOTE
   s <- identifier <|>
-       A.word8 dq *> rstring_ dq <* A.word8 dq <|>
        A.word8 sq *> rstring_ sq <* A.word8 sq
   return $ String s
 
 rstring_ :: Word8 -> Parser T.Text
-rstring_ endCh = loop ""
+rstring_ endCh = loop "" A.<?> "rstring_"
   where
     loop acc = do
       w <- A.peekWord8'
@@ -131,7 +127,7 @@ rstring_ endCh = loop ""
           loop $ T.snoc acc $ byteToChar ch
 
 number :: Parser Value
-number = Number <$> scientific
+number = Number <$> scientific A.<?> "number"
 
 identifier :: Parser T.Text
 identifier = do

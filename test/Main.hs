@@ -24,34 +24,24 @@ main = hspec $ do
     context "strings" $ do
       it "empty string single quotes" $ do
         (decode "''") `shouldBe` (Right $ String "")
-      it "empty string double quotes" $ do
-        (decode "\"\"") `shouldBe` (Right $ String "")
       it "simple string single quoted" $ do
         (decode "'ahoj'") `shouldBe` (Right $ String "ahoj")
-      it "simple string double quoted" $ do
-        (decode "\"ahoj\"") `shouldBe` (Right $ String "ahoj")
       it "simple string unquoted" $ do
         (decode "ahoj") `shouldBe` (Right $ String "ahoj")
       it "escapes" $ do
         (decode "'\\\\!\\!!\\!'") `shouldBe` (Right $ String "\\\\!!")
 
     context "object" $ do
-      it "empty object curly" $ do
-        (decode "{}") `shouldBe` (Right $ Object H.empty)
       it "empty object braced" $ do
         (decode "()") `shouldBe` (Right $ Object H.empty)
       it "simple object braced" $ do
         (decode "(property:!n)") `shouldBe`
           (Right $ Object $ H.fromList [("property", Null)])
-      it "bracing mismatch" $ do
-        (decode "{property:!n)") `shouldBe` Left "33: Failed reading: satisfy"
       it "simple object unquoted string" $ do
         (decode "(property:Off)") `shouldBe`
           (Right $ Object $ H.fromList [("property", String "Off")])
 
     context "array" $ do
-      it "empty array square" $ do
-        (decode "[]") `shouldBe` (Right $ Array V.empty)
       it "empty array braced" $ do
         (decode "!()") `shouldBe` (Right $ Array V.empty)
       it "booleans" $ do
