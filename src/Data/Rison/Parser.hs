@@ -9,6 +9,7 @@ import           Data.Aeson ( Value(..) )
 import qualified Data.Attoparsec.ByteString as A
 import           Data.Attoparsec.ByteString.Char8 ( Parser
                                                   , scientific )
+import qualified Data.ByteString as BS ( cons )
 import qualified Data.HashMap.Strict as H
 import           Data.Monoid ( (<>) )
 import           Data.Strings ( byteToChar )
@@ -60,10 +61,9 @@ objectValues = do
     else loop H.empty
  where
   loop m0 = do
-    k <- A.takeWhile1 (/=COLON)
-    A.word8 COLON
+    ident <- identifier <* A.word8 COLON
     v <- value
-    let !m = H.insert (decodeUtf8 k) v m0
+    let !m = H.insert ident v m0
     ch <- A.peekWord8'
     if ch == COMMA
       then A.word8 COMMA *> loop m
@@ -112,7 +112,8 @@ rstring :: Parser Value
 rstring = do
   let dq = DOUBLE_QUOTE
       sq = SINGLE_QUOTE
-  s <- A.word8 dq *> rstring_ dq <* A.word8 dq <|>
+  s <- identifier <|>
+       A.word8 dq *> rstring_ dq <* A.word8 dq <|>
        A.word8 sq *> rstring_ sq <* A.word8 sq
   return $ String s
 
@@ -131,3 +132,9 @@ rstring_ endCh = loop ""
 
 number :: Parser Value
 number = Number <$> scientific
+
+identifier :: Parser T.Text
+identifier = do
+  ch1 <- A.satisfy $ A.inClass "a-zA-Z"
+  rest <- A.takeWhile $ A.inClass "0-9a-zA-Z"
+  return $ decodeUtf8 (ch1 `BS.cons` rest)

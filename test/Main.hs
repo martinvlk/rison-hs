@@ -30,6 +30,8 @@ main = hspec $ do
         (decode "'ahoj'") `shouldBe` (Right $ String "ahoj")
       it "simple string double quoted" $ do
         (decode "\"ahoj\"") `shouldBe` (Right $ String "ahoj")
+      it "simple string unquoted" $ do
+        (decode "ahoj") `shouldBe` (Right $ String "ahoj")
       it "escapes" $ do
         (decode "'\\\\!\\!!\\!'") `shouldBe` (Right $ String "\\\\!!")
 
@@ -43,6 +45,9 @@ main = hspec $ do
           (Right $ Object $ H.fromList [("property", Null)])
       it "bracing mismatch" $ do
         (decode "{property:!n)") `shouldBe` Left "33: Failed reading: satisfy"
+      it "simple object unquoted string" $ do
+        (decode "(property:Off)") `shouldBe`
+          (Right $ Object $ H.fromList [("property", String "Off")])
 
     context "array" $ do
       it "empty array square" $ do
