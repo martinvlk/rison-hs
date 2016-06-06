@@ -135,6 +135,6 @@ number = Number <$> scientific
 
 identifier :: Parser T.Text
 identifier = do
-  ch1 <- A.satisfy $ A.inClass "a-zA-Z"
-  rest <- A.takeWhile $ A.inClass "0-9a-zA-Z/"
+  ch1 <- A.satisfy $ A.inClass "a-zA-Z_"
+  rest <- A.takeWhile $ A.inClass "0-9a-zA-Z/_-"
   return $ decodeUtf8 (ch1 `BS.cons` rest)

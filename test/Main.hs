@@ -31,7 +31,7 @@ main = hspec $ do
       it "escapes" $ do
         (decode "'\\\\!\\!!\\!'") `shouldBe` (Right $ String "\\\\!!")
       it "unquoted with special chars" $ do
-        (decode "ahoj/y") `shouldBe` (Right $ String "ahoj/y")
+        (decode "_ah-oj/y") `shouldBe` (Right $ String "_ah-oj/y")
 
     context "object" $ do
       it "empty object braced" $ do
