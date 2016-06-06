@@ -16,7 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Data.Rison
-  other-modules:       
+  other-modules:       Data.Rison.Parser
   build-depends:       base >= 4.7 && < 5
                      , attoparsec
                      , parsers
