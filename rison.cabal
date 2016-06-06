@@ -2,7 +2,7 @@ name:                rison
 version:             0.1.0.0
 synopsis:            Support for parsing and rendering RISON strings.
 description:         Please see README.md
-homepage:            https://github.com/martinvlk/rison#readme
+homepage:            https://github.com/martinvlk/rison-hs#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Martin Vlk
@@ -16,7 +16,6 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Data.Rison
-                       Data.Rison.Parser
   other-modules:       
   build-depends:       base >= 4.7 && < 5
                      , attoparsec
@@ -31,7 +30,7 @@ library
 
 source-repository head
   type:     git
-  location: https://github.com/martinvlk/rison
+  location: https://github.com/martinvlk/rison-hs
 
 test-suite tests
   type: exitcode-stdio-1.0
