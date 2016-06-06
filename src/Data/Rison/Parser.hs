@@ -18,8 +18,6 @@ import           Data.Text.Encoding ( decodeUtf8 )
 import qualified Data.Vector as V
 import           Data.Word ( Word8 )
 
-import           Debug.Trace ( trace )
-
 #define BACKSLASH 92
 #define CLOSE_CURLY 125
 #define CLOSE_SQUARE 93
@@ -45,11 +43,13 @@ rison :: Parser Value
 rison = value
 
 value :: Parser Value
-value = object <|> array <|> rstring <|> number <|> boolean <|> nulll A.<?> "unsupported value type"
+value = object <|> array <|> rstring <|> number <|> boolean <|> nulll
+        A.<?> "unsupported value type"
 
 object :: Parser Value
 object = do
-  m <- (A.word8 OPEN_BRACKET *> objectValues <* A.word8 CLOSE_BRACKET) A.<?> "object"
+  m <- (A.word8 OPEN_BRACKET *> objectValues <* A.word8 CLOSE_BRACKET)
+       A.<?> "object"
   return $ Object m
 
 objectValues :: Parser (H.HashMap T.Text Value)
@@ -60,8 +60,10 @@ objectValues = do
     else loop H.empty
  where
   loop m0 = do
-    ident <- identifier <* A.word8 COLON A.<?> "object property identifier"
-    v <- value A.<?> "object property value"
+    ident <- identifier <* A.word8 COLON
+             A.<?> "object property identifier"
+    v <- value
+         A.<?> "object property value"
     let !m = H.insert ident v m0
     ch <- A.peekWord8'
     if ch == COMMA
@@ -89,7 +91,8 @@ arrayValues = do
         else return (V.reverse (V.fromList (v:acc)))
 
 boolean :: Parser Value
-boolean = true <|> false A.<?> "boolean"
+boolean = true <|> false
+          A.<?> "boolean"
   where
     true = do
       A.word8 EXCLAMATION
@@ -127,10 +130,11 @@ rstring_ endCh = loop "" A.<?> "rstring_"
           loop $ T.snoc acc $ byteToChar ch
 
 number :: Parser Value
-number = Number <$> scientific A.<?> "number"
+number = Number <$> scientific
+         A.<?> "number"
 
 identifier :: Parser T.Text
 identifier = do
   ch1 <- A.satisfy $ A.inClass "a-zA-Z"
-  rest <- A.takeWhile $ A.inClass "0-9a-zA-Z"
+  rest <- A.takeWhile $ A.inClass "0-9a-zA-Z/"
   return $ decodeUtf8 (ch1 `BS.cons` rest)
