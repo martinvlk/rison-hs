@@ -1,7 +1,7 @@
 name:                rison
-version:             0.1.0.0
-synopsis:            Support for parsing and rendering RISON strings.
-description:         Please see README.md
+version:             1.0.0.0
+synopsis:            Parses and renders RISON strings.
+description:         Rison gets parsed into and serialized from Aeson Valueobjects. Please see README.md for details.
 homepage:            https://github.com/martinvlk/rison-hs#readme
 license:             BSD3
 license-file:        LICENSE

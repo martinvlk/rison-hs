@@ -5,3 +5,15 @@ Rison gets parsed into and serialized from Aeson [Value](http://hackage.haskell.
 
 Implementation partly inspired by [Aeson](https://github.com/bos/aeson).
 
+##Example
+
+```
+{-# LANGUAGE OverloadedStrings #-}
+import Data.Rison
+
+example :: Bool
+example = let inputString = "(property:!(val1,val2,val3))"
+              aesonValue = decode inputString
+              outputString = encode aesonValue
+          in inputString == outputString
+```
