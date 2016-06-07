@@ -1,9 +1,7 @@
 # rison-hs
-Haskel library for parsing and rendering RISON strings.
+Haskell library for parsing and rendering [RISON](https://github.com/Nanonid/rison) strings.
 
-The parsing part is functional, the rison string gets parsed into Aeson
-Value objects.
+Rison gets parsed into and serialized from Aeson [Value](http://hackage.haskell.org/package/aeson-0.11.2.0/docs/Data-Aeson-Types.html#t:Value) objects.
 
-The rendering part is not yet implemented.
+Implementation partly inspired by [Aeson](https://github.com/bos/aeson).
 
-See the RISON spec at https://github.com/Nanonid/rison

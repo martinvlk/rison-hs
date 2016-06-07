@@ -72,8 +72,8 @@ objectValues = do
 
 array :: Parser Value
 array = do
-  v <- (A.word8 EXCLAMATION *>
-        A.word8 OPEN_BRACKET *> arrayValues <* A.word8 CLOSE_BRACKET)
+  v <- A.word8 EXCLAMATION *>
+       A.word8 OPEN_BRACKET *> arrayValues <* A.word8 CLOSE_BRACKET
   return $ Array v
 
 arrayValues :: Parser (V.Vector Value)
@@ -107,7 +107,7 @@ nulll :: Parser Value
 nulll = do
   A.word8 EXCLAMATION
   A.word8 C_n
-  return $ Null
+  return Null
 
 rstring :: Parser Value
 rstring = do
