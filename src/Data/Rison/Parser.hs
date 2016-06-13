@@ -60,7 +60,7 @@ objectValues = do
     else loop H.empty
  where
   loop m0 = do
-    ident <- identifier <* A.word8 COLON
+    ident <- (((\(String t) -> t) <$> rstring) <|> identifier) <* A.word8 COLON
              A.<?> "object property identifier"
     v <- value
          A.<?> "object property value"

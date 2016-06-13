@@ -42,6 +42,9 @@ main = hspec $ do
       it "simple with unquoted string" $ do
         (decode "(property:Off)") `shouldBe`
           (Right $ Object $ H.fromList [("property", String "Off")])
+      it "simple with dollar in property name" $ do
+        (decode "('$property':Off)") `shouldBe`
+          (Right $ Object $ H.fromList [("$property", String "Off")])
 
     context "array" $ do
       it "empty" $ do
