@@ -4,36 +4,39 @@ module Data.Rison.Writer ( write ) where
 
 import           Data.Aeson ( Value(..) )
 import           Data.ByteString ( ByteString )
+import           Data.ByteString.Lazy ( toStrict )
+import           Data.ByteString.Builder (toLazyByteString, integerDec)
+import           Data.ByteString.Builder.Scientific (scientificBuilder)
 import qualified Data.HashMap.Strict as H
 import qualified Data.List as L
 import           Data.Maybe ( fromMaybe )
 import           Data.Monoid ( (<>) )
-import           Data.Scientific ( toRealFloat )
+import           Data.Scientific (base10Exponent, coefficient)
 import qualified Data.Text as T
 import           Data.Text.Encoding ( encodeUtf8
                                     , decodeUtf8 )
-import           Data.Text.Format ( Only(..)
-                                  , format
-                                  , shortest )
-import           Data.Text.Internal.Builder ( toLazyText )
-import qualified Data.Text.Lazy as LT
 import qualified Data.Vector as V
 
 write :: Value -> ByteString
 write Null = "!n"
 write (Bool True) = "!t"
 write (Bool False) = "!f"
-write (Number n) = encodeUtf8 . LT.toStrict . toLazyText . shortest $ n
-
-write (String s) = quot <> encodeUtf8 (T.foldr esc "" s) <> quot
+write (Number n) = toStrict $ toLazyByteString numberbuilder
   where
-    esc c acc | c == '!' = "!!" <> acc
-              | c == '\\' = "!\\" <> acc
-              | otherwise = c `T.cons` acc
+    e = base10Exponent n
+    numberbuilder
+      | e < 0     = scientificBuilder n
+      | otherwise = integerDec (coefficient n * 10 ^ e)
 
-    quot = if T.null . T.filter escChars $ s
-           then ""
-           else "'"
+
+write (String s)
+  | T.any escChars s = "'" <> encodedS <> "'"
+  | otherwise = encodedS
+  where
+    encodedS = encodeUtf8 (T.concatMap esc s)
+    esc c | c == '!' = "!!"
+          | c == '\\' = "!\\"
+          | otherwise = T.singleton c
 
     escChars '\\' = True
     escChars '!'  = True

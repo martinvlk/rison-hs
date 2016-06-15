@@ -2,21 +2,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE BangPatterns #-}
 
-module Data.Rison.Parser where
+module Data.Rison.Parser (
+  rison
+) where
 
 import           Control.Applicative ( (<|>) )
 import           Data.Aeson ( Value(..) )
 import qualified Data.Attoparsec.ByteString as A
 import           Data.Attoparsec.ByteString.Char8 ( Parser
-                                                  , scientific )
+                                                  , scientific
+                                                  , char )
 import qualified Data.ByteString as BS ( cons )
+import           Data.Char (chr)
 import qualified Data.HashMap.Strict as H
-import           Data.Monoid ( (<>) )
-import           Data.Strings ( byteToChar )
 import qualified Data.Text as T
 import           Data.Text.Encoding ( decodeUtf8 )
 import qualified Data.Vector as V
-import           Data.Word ( Word8 )
 
 #define BACKSLASH 92
 #define CLOSE_CURLY 125
@@ -60,7 +61,7 @@ objectValues = do
     else loop H.empty
  where
   loop m0 = do
-    ident <- (((\(String t) -> t) <$> rstring) <|> identifier) <* A.word8 COLON
+    ident <- (rstring' <|> identifier) <* char ':'
              A.<?> "object property identifier"
     v <- value
          A.<?> "object property value"
@@ -91,43 +92,35 @@ arrayValues = do
         else return (V.reverse (V.fromList (v:acc)))
 
 boolean :: Parser Value
-boolean = true <|> false
-          A.<?> "boolean"
+boolean = do
+    _ <- A.word8 EXCLAMATION
+    true <|> false
   where
-    true = do
-      A.word8 EXCLAMATION
-      A.word8 C_t
-      return $ Bool True
-    false = do
-      A.word8 EXCLAMATION
-      A.word8 C_f
-      return $ Bool False
+    true = Bool True <$ A.word8 C_t
+    false = Bool False <$ A.word8 C_f
 
 nulll :: Parser Value
 nulll = do
-  A.word8 EXCLAMATION
-  A.word8 C_n
+  _ <- A.word8 EXCLAMATION
+  _ <- A.word8 C_n
   return Null
 
 rstring :: Parser Value
-rstring = do
-  let sq = SINGLE_QUOTE
-  s <- identifier <|>
-       A.word8 sq *> rstring_ sq <* A.word8 sq
-  return $ String s
+rstring = String <$> rstring'
 
-rstring_ :: Word8 -> Parser T.Text
-rstring_ endCh = loop "" A.<?> "rstring_"
+rstring' :: Parser T.Text
+rstring' = identifier <|> (A.word8 sq *> rstring_ "" <* A.word8 sq)
   where
-    loop acc = do
+    sq = SINGLE_QUOTE
+    rstring_ acc = do
       w <- A.peekWord8'
-      if w == endCh
+      if w == sq
         then return acc
         else do
           ch <- if w == EXCLAMATION || w == BACKSLASH
                 then A.word8 w *> A.anyWord8
                 else A.anyWord8
-          loop $ T.snoc acc $ byteToChar ch
+          rstring_ $ T.snoc acc $ chr (fromIntegral ch)
 
 number :: Parser Value
 number = Number <$> scientific
@@ -136,5 +129,5 @@ number = Number <$> scientific
 identifier :: Parser T.Text
 identifier = do
   ch1 <- A.satisfy $ A.inClass "a-zA-Z_"
-  rest <- A.takeWhile $ A.inClass "0-9a-zA-Z/_-"
+  rest <- A.takeWhile $ A.inClass ".0-9a-zA-Z/_-"
   return $ decodeUtf8 (ch1 `BS.cons` rest)

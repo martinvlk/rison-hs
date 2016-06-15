@@ -5,7 +5,6 @@ module Data.Rison (
 
 import           Data.Aeson ( Value(..) )
 import qualified Data.Attoparsec.ByteString as A
-import           Data.Attoparsec.ByteString.Char8 ( Parser )
 import           Data.ByteString ( ByteString )
 import           Data.Rison.Parser
 import           Data.Rison.Writer
