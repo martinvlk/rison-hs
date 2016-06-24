@@ -3,14 +3,22 @@ module Data.Rison (
   , encode
   ) where
 
-import           Data.Aeson ( Value(..) )
+import           Data.Aeson ( FromJSON
+                            , ToJSON
+                            , fromJSON
+                            , toJSON
+                            , Result(..) )
 import qualified Data.Attoparsec.ByteString as A
 import           Data.ByteString ( ByteString )
 import           Data.Rison.Parser
 import           Data.Rison.Writer
 
-decode :: ByteString -> Either String Value
-decode = A.parseOnly rison
+decode :: FromJSON a => ByteString -> Either String a
+decode bs = do
+  pr <- A.parseOnly rison bs
+  case fromJSON pr of
+    Error   e -> Left  e
+    Success a -> Right a
 
-encode :: Value -> ByteString
-encode = write
+encode :: ToJSON a => a -> ByteString
+encode = write . toJSON
