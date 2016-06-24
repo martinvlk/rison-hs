@@ -1,5 +1,5 @@
 name:                rison
-version:             1.0.0.0
+version:             1.1.0.0
 synopsis:            Parses and renders RISON strings.
 description:         Rison gets parsed into and serialized from Aeson Valueobjects. Please see README.md for details.
 homepage:            https://github.com/martinvlk/rison-hs#readme

@@ -17,3 +17,7 @@ example = let inputString = "(property:!(val1,val2,val3))"
               outputString = encode aesonValue
           in inputString == outputString
 ```
+## Release Notes
+* V1.1.0.0
+  * fixed a bug related to parsing quoted property identifiers
+  * The encode/decode interface type has been unified with Aeson's
